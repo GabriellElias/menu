@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato e Informações da YuarTech</title>
+    <!-- Importa a fonte Poppins do Google Fonts para um visual moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Importa os ícones do Font Awesome para adicionar elementos visuais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Início do bloco de estilos CSS -->
+    <style>
+        /* Variáveis CSS para a paleta de cores consistente com o site principal */
+        :root {
+            --primary-color: #7B42F6; /* Violeta/Azul principal */
+            --secondary-color: #8C99A4; /* Cinza médio */
+            --accent-color: #00D2B8; /* Verde-água vibrante */
+            --background-light: #F8F9FB; /* Fundo claro geral */
+            --background-dark: #2F3640; /* Cinza escuro/carvão */
+            --text-color-dark: #3E4A59; /* Texto escuro principal */
+            --text-color-light: #ffffff; /* Texto claro */
+            --border-color: #E2E4E8; /* Cor de borda suave */
+            --box-shadow: rgba(0, 0, 0, 0.1); /* Sombra padrão */
+            --hover-shadow: rgba(123, 66, 246, 0.4); /* Sombra de hover primária */
+            --transition-speed: 0.4s; /* Velocidade padrão das transições */
+        }
+
+        /* Reset básico de estilos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color-dark);
+            background-color: var(--background-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            /* Fundo sutilmente animado ou imagem de fundo suave */
+            background-image: url('https://img.freepik.com/vetores-gratis/fundo-azul-abstrato_1182-594.jpg'); /* [Imagem de Fundo Azul Abstrato] */
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(248, 249, 251, 0.9); /* Overlay um pouco mais opaco para legibilidade */
+            z-index: -1;
+        }
+
+        /* Seção principal (Hero) */
+        .page-hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--background-dark));
+            color: var(--text-color-light);
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--box-shadow);
+        }
+
+        .page-hero-section h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .page-hero-section p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Contêiner principal para o conteúdo */
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 0 25px;
+            flex-grow: 1;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2em;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* Seção de Contato */
+        .contact-section { /* Container principal da seção de contato */
+            margin-bottom: 60px; /* Espaçamento da seção */
+        }
+
+        .contact-cards-grid { /* Novo container flexível para os cartões de contato */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px; /* Espaçamento entre os cartões */
+            margin-top: 40px; /* Espaçamento do título */
+        }
+
+        .contact-card {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            text-align: center;
+            /* Largura calculada para 3 itens por linha em desktop, considerando o gap */
+            width: calc(33.333% - 20px); /* (30px * 2 itens de gap) / 3 itens = 20px */
+            max-width: 350px; 
+            min-width: 280px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+
+        .contact-card.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .contact-card .icon {
+            font-size: 3em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .contact-card h3 {
+            font-size: 1.4em;
+            color: var(--text-color-dark);
+            margin-bottom: 15px;
+        }
+
+        .contact-card p {
+            font-size: 1em;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        .contact-card a {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: var(--text-color-light);
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .contact-card a:hover {
+            background-color: #00967a;
+            transform: translateY(-3px);
+        }
+
+        /* Seção de Endereço e Mapa */
+        .address-map-section {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 60px;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+        .address-map-section.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .address-map-section p {
+            font-size: 1.1em;
+            color: var(--text-color-dark);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px; /* Altura fixa do mapa */
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Seção da Equipe */
+        .team-section {
+            text-align: center;
+        }
+
+        .team-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            /* Largura calculada para 4 itens por linha em desktop, considerando o gap */
+            width: calc(25% - 22.5px); /* (30px * 3 itens de gap) / 4 itens = 22.5px */
+            max-width: 250px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+
+        .team-member.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-member img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .team-member:hover img {
+            border-color: var(--accent-color);
+        }
+
+        .team-member h3 {
+            font-size: 1.3em;
+            color: var(--text-color-dark);
+            margin-bottom: 8px;
+        }
+
+        .team-member p {
+            font-size: 0.95em;
+            color: var(--secondary-color);
+        }
+
+        /* Rodapé da página */
+        footer {
+            background-color: var(--background-dark);
+            color: var(--text-color-light);
+            text-align: center;
+            padding: 35px 20px;
+            margin-top: 40px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        footer p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 768px) {
+            .page-hero-section h1 {
+                font-size: 2.2em;
+            }
+            .page-hero-section p {
+                font-size: 1em;
+            }
+            .section-title {
+                font-size: 1.8em;
+                margin-bottom: 30px;
+            }
+            .contact-card {
+                width: calc(50% - 15px); /* 2 itens por linha em tablets */
+                max-width: 400px; 
+            }
+            .team-member {
+                width: calc(50% - 15px); /* 2 itens por linha em tablets */
+                max-width: 280px; 
+            }
+            .map-container {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-hero-section {
+                padding: 40px 15px;
+            }
+            .page-hero-section h1 {
+                font-size: 1.8em;
+            }
+            .section-title {
+                font-size: 1.6em;
+                margin-bottom: 25px;
+            }
+            .contact-card, .team-member {
+                width: 100%; /* 1 item por linha em mobile */
+                padding: 20px;
+            }
+            .map-container {
+                height: 250px;
+            }
+        }
+    </style>
+    <!-- Fim do bloco de estilos CSS -->
+</head>
+<body>
+    <header class="page-hero-section">
+        <h1>Fale Conosco na YuarTech</h1>
+        <p>Estamos aqui para ajudar a sua empresa a alcançar novos patamares digitais.</p>
+    </header>
+
+    <main class="container">
+        <!-- Seção de Contato -->
+        <section class="contact-section">
+            <h2 class="section-title">Nossos Contatos</h2>
+            <div class="contact-cards-grid">
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fas fa-envelope"></i></div>
+                    <h3>Email</h3>
+                    <p>Envie-nos um email a qualquer momento!</p>
+                    <a href="mailto:contato@yuartech.com">Enviar Email</a>
+                </div>
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fas fa-phone-alt"></i></div>
+                    <h3>Telefone</h3>
+                    <p>Ligue para nós durante o horário comercial.</p>
+                    <a href="tel:+5511999999999">Ligar Agora</a>
+                </div>
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fab fa-whatsapp"></i></div>
+                    <h3>WhatsApp</h3>
+                    <p>Entre em contato rápido pelo WhatsApp.</p>
+                    <a href="https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços." target="_blank">Enviar Mensagem</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Endereço e Mapa -->
+        <section class="address-map-section show-on-scroll">
+            <h2 class="section-title">Nosso Endereço</h2>
+            <p>Visite-nos em nosso escritório para um café e uma conversa sobre seu projeto!</p>
+            <p><strong>Rua Exemplo, 123 - Centro<br>Cidade Fictícia, Estado XX - CEP 12345-678</strong></p>
+            <div class="map-container">
+                <!-- Substitua o src do iframe pelo link de incorporação do Google Maps para o seu endereço real -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.069799516663!2d-46.65682888538356!3d-23.568270184674395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59a9c336b9c9%3A0x7d6b3b5e4c0d0a7a!2sAv.%20Paulista,%201578%20-%20Bela%20Vista,%20S%C3%A3o%20Paulo%20-%20SP,%2001310-200!5e0!3m2!1spt-BR!2sbr!4v1628100000000!5m2!1spt-BR!2sbr" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </section>
+
+        <!-- Seção da Equipe -->
+        <section class="team-section">
+            <h2 class="section-title">Nossa Equipe</h2>
+            <p>Conheça os profissionais dedicados que fazem a YuarTech acontecer!</p>
+            <div class="team-grid">
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/7B42F6/FFFFFF?text=FOTO+1" alt="[Imagem do Membro da Equipe 1]">
+                    <h3>Nome do Membro 1</h3>
+                    <p>CEO & Estrategista Digital</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/00D2B8/FFFFFF?text=FOTO+2" alt="[Imagem do Membro da Equipe 2]">
+                    <h3>Nome do Membro 2</h3>
+                    <p>Desenvolvedora Fullstack</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/2F3640/FFFFFF?text=FOTO+3" alt="[Imagem do Membro da Equipe 3]">
+                    <h3>Nome do Membro 3</h3>
+                    <p>Designer UX/UI</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/7B42F6/FFFFFF?text=FOTO+4" alt="[Imagem do Membro da Equipe 4]">
+                    <h3>Nome do Membro 4</h3>
+                    <p>Especialista em Marketing</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 YuarTech. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Início do bloco de scripts JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Seleciona todos os elementos com a classe 'show-on-scroll' para animação
+            const elementsToShow = document.querySelectorAll('.show-on-scroll');
+
+            // Configura o Intersection Observer para animações de scroll
+            const observerOptions = {
+                root: null, /* O viewport como elemento raiz */
+                rootMargin: '0px', /* Margem zero em torno da raiz */
+                threshold: 0.1 /* Dispara quando 10% do elemento está visível */
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Se o elemento está visível, adiciona a classe 'show' para ativar a animação
+                        entry.target.classList.add('show');
+                        // Para de observar o elemento uma vez que ele já foi animado
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Adiciona cada elemento a ser animado ao observador
+            elementsToShow.forEach(element => {
+                observer.observe(element);
+            });
+        });
+    </script>
+    <!-- Fim do bloco de scripts JavaScript -->
+</body>
+</html>
