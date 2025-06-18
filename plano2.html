@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento e Contato da YuarTech</title>
+    <!-- Importa a fonte Poppins do Google Fonts para um visual moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Importa os ícones do Font Awesome para adicionar elementos visuais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous
+
+        // Initialize Firebase
+        if (typeof __firebase_config !== 'undefined') {
+            const firebaseConfig = JSON.parse(__firebase_config);
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Authenticate user
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                } else {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                            userId = auth.currentUser.uid;
+                        } else {
+                            await signInAnonymously(auth);
+                            userId = auth.currentUser.uid;
+                        }
+                    } catch (error) {
+                        console.error("Firebase authentication error:", error);
+                        // Fallback to a random ID if auth fails, for local persistence scope
+                        userId = crypto.randomUUID();
+                    }
+                }
+                document.getElementById('current-user-id').textContent = userId;
+                // Once authenticated, load data
+                loadAppointments();
+                setupAppointmentForm();
+                setupContactForm();
+            });
+        } else {
+            console.warn("Firebase config not found. Running in standalone mode without persistence.");
+            userId = crypto.randomUUID(); // Generate a random ID for non-Firebase environments
+            document.getElementById('current-user-id').textContent = userId;
+            // Setup forms even without Firebase for basic functionality
+            setupAppointmentForm();
+            setupContactForm();
+        }
+
+        // --- Appointment Scheduling Functions ---
+        async function loadAppointments() {
+            if (!db || !userId) return;
+
+            const appointmentsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/appointments`);
+            // Note: orderBy is removed as per previous instructions to avoid index issues.
+            // Data will be sorted in JavaScript after fetching.
+            const q = query(appointmentsCollectionRef);
+
+            onSnapshot(q, (snapshot) => {
+                const appointmentsList = [];
+                snapshot.forEach((doc) => {
+                    appointmentsList.push({ id: doc.id, ...doc.data() });
+                });
+                renderAppointments(appointmentsList);
+            }, (error) => {
+                console.error("Error loading appointments:", error);
+                displayMessage("Erro ao carregar agendamentos.", "error");
+            });
+        }
+
+        function renderAppointments(appointments) {
+            const tableBody = document.getElementById('appointments-table-body');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            // Sort appointments by date and time in JavaScript
+            appointments.sort((a, b) => {
+                const dateA = new Date(`${a.date}T${a.time}`);
+                const dateB = new Date(`${b.date}T${b.time}`);
+                return dateA - dateB;
+            });
+
+            if (appointments.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="no-appointments">Nenhum agendamento encontrado.</td></tr>';
+                return;
+            }
+
+            appointments.forEach(app => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${app.date}</td>
+                    <td>${app.time}</td>
+                    <td>${app.client}</td>
+                    <td>
+                        <button class="delete-btn" data-id="${app.id}">Excluir</button>
+                    </td>
+                `;
+            });
+
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    const idToDelete = event.target.dataset.id;
+                    await deleteAppointment(idToDelete);
+                });
+            });
+        }
+
+        async function addAppointment(date, time, client) {
+            if (!db || !userId) {
+                displayMessage("Erro: Banco de dados não inicializado ou usuário não autenticado.", "error");
+                return;
+            }
+            if (!date || !time || !client) {
+                displayMessage("Por favor, preencha todos os campos do agendamento.", "warning");
+                return;
+            }
+
+            try {
+                const appointmentsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/appointments`);
+                await addDoc(appointmentsCollectionRef, {
+                    date: date,
+                    time: time,
+                    client: client,
+                    timestamp: new Date() // Add a timestamp for internal sorting/ordering if needed
+                });
+                displayMessage("Agendamento adicionado com sucesso!", "success");
+            } catch (e) {
+                console.error("Error adding appointment: ", e);
+                displayMessage("Erro ao adicionar agendamento.", "error");
+            }
+        }
+
+        async function deleteAppointment(id) {
+            if (!db || !userId) {
+                displayMessage("Erro: Banco de dados não inicializado ou usuário não autenticado.", "error");
+                return;
+            }
+
+            try {
+                const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/appointments`, id);
+                await deleteDoc(docRef);
+                displayMessage("Agendamento excluído com sucesso!", "success");
+            } catch (e) {
+                console.error("Error deleting appointment: ", e);
+                displayMessage("Erro ao excluir agendamento.", "error");
+            }
+        }
+
+        function setupAppointmentForm() {
+            const appointmentForm = document.getElementById('appointment-form');
+            if (appointmentForm) {
+                appointmentForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const date = document.getElementById('appointment-date').value;
+                    const time = document.getElementById('appointment-time').value;
+                    const client = document.getElementById('appointment-client').value;
+                    addAppointment(date, time, client);
+                    appointmentForm.reset(); // Clear the form
+                });
+            }
+        }
+
+        // --- Contact Form Functions ---
+        async function submitContactForm(name, email, phone, message) {
+            if (!db) {
+                displayMessage("Erro: Banco de dados não inicializado.", "error");
+                return;
+            }
+            if (!name || !email || !message) {
+                displayMessage("Por favor, preencha nome, email e mensagem.", "warning");
+                return;
+            }
+
+            try {
+                const contactMessagesCollectionRef = collection(db, `artifacts/${__app_id}/public/data/contact_messages`);
+                await addDoc(contactMessagesCollectionRef, {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    message: message,
+                    timestamp: new Date()
+                });
+                displayMessage("Sua mensagem foi enviada com sucesso! Entraremos em contato.", "success");
+            } catch (e) {
+                console.error("Error submitting contact form: ", e);
+                displayMessage("Erro ao enviar sua mensagem. Por favor, tente novamente.", "error");
+            }
+        }
+
+        function setupContactForm() {
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const name = document.getElementById('contact-name').value;
+                    const email = document.getElementById('contact-email').value;
+                    const phone = document.getElementById('contact-phone').value;
+                    const message = document.getElementById('contact-message').value;
+                    submitContactForm(name, email, phone, message);
+                    contactForm.reset(); // Clear the form
+                });
+            }
+        }
+
+        // --- Message Display Function ---
+        function displayMessage(msg, type = "info") {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = msg;
+            messageBox.className = 'message-box ' + type; // Apply type class for styling (e.g., success, error, warning)
+            messageBox.style.display = 'block';
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000); // Hide after 5 seconds
+        }
+    </script>
+
+    <!-- Início do bloco de estilos CSS -->
+    <style>
+        /* Variáveis CSS para a paleta de cores consistente com o site principal */
+        :root {
+            --primary-color: #7B42F6; /* Violeta/Azul principal */
+            --secondary-color: #8C99A4; /* Cinza médio */
+            --accent-color: #00D2B8; /* Verde-água vibrante */
+            --background-light: #F8F9FB; /* Fundo claro geral */
+            --background-dark: #2F3640; /* Cinza escuro/carvão */
+            --text-color-dark: #3E4A59; /* Texto escuro principal */
+            --text-color-light: #ffffff; /* Texto claro */
+            --border-color: #E2E4E8; /* Cor de borda suave */
+            --box-shadow: rgba(0, 0, 0, 0.1); /* Sombra padrão */
+            --hover-shadow: rgba(123, 66, 246, 0.4); /* Sombra de hover primária */
+            --transition-speed: 0.4s; /* Velocidade padrão das transições */
+        }
+
+        /* Reset básico de estilos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color-dark);
+            background-color: var(--background-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: url('https://img.freepik.com/vetores-gratis/fundo-azul-abstrato_1182-594.jpg'); /* [Imagem de Fundo Azul Abstrato] */
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(248, 249, 251, 0.9); /* Overlay um pouco mais opaco para legibilidade */
+            z-index: -1;
+        }
+
+        /* Seção principal (Hero) */
+        .page-hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--background-dark));
+            color: var(--text-color-light);
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--box-shadow);
+        }
+
+        .page-hero-section h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .page-hero-section p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Contêiner principal para o conteúdo */
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 0 25px;
+            flex-grow: 1;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2em;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* Seção de Contato */
+        .contact-section { /* Container principal da seção de contato */
+            margin-bottom: 60px; /* Espaçamento da seção */
+        }
+
+        .contact-cards-grid { /* Novo container flexível para os cartões de contato */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px; /* Espaçamento entre os cartões */
+            margin-top: 40px; /* Espaçamento do título */
+        }
+
+        .contact-card {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            text-align: center;
+            /* Largura calculada para 3 itens por linha em desktop, considerando o gap */
+            width: calc(33.333% - 20px); /* (30px * 2 itens de gap) / 3 itens = 20px */
+            max-width: 350px; 
+            min-width: 280px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+
+        .contact-card.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .contact-card .icon {
+            font-size: 3em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .contact-card h3 {
+            font-size: 1.4em;
+            color: var(--text-color-dark);
+            margin-bottom: 15px;
+        }
+
+        .contact-card p {
+            font-size: 1em;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        .contact-card a {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: var(--text-color-light);
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .contact-card a:hover {
+            background-color: #00967a;
+            transform: translateY(-3px);
+        }
+
+        /* Seção de Endereço e Mapa */
+        .address-map-section {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 60px;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+        .address-map-section.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .address-map-section p {
+            font-size: 1.1em;
+            color: var(--text-color-dark);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px; /* Altura fixa do mapa */
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Seção da Equipe */
+        .team-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .team-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            /* Largura calculada para 4 itens por linha em desktop, considerando o gap */
+            width: calc(25% - 22.5px); /* (30px * 3 itens de gap) / 4 itens = 22.5px */
+            max-width: 250px; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+
+        .team-member.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-member img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .team-member:hover img {
+            border-color: var(--accent-color);
+        }
+
+        .team-member h3 {
+            font-size: 1.3em;
+            color: var(--text-color-dark);
+            margin-bottom: 8px;
+        }
+
+        .team-member p {
+            font-size: 0.95em;
+            color: var(--secondary-color);
+        }
+
+        /* Seção de Agendamentos */
+        .scheduling-section {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 60px;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+        .scheduling-section.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .scheduling-section h2 {
+            margin-bottom: 30px;
+        }
+
+        .scheduling-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .scheduling-form input[type="date"],
+        .scheduling-form input[type="time"],
+        .scheduling-form input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1em;
+            color: var(--text-color-dark);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .scheduling-form input[type="date"]:focus,
+        .scheduling-form input[type="time"]:focus,
+        .scheduling-form input[type="text"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(123, 66, 246, 0.2);
+            outline: none;
+        }
+
+        .scheduling-form button {
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            white-space: nowrap; /* Evita que o texto do botão quebre */
+        }
+
+        .scheduling-form button:hover {
+            background-color: var(--background-dark);
+            transform: translateY(-2px);
+        }
+
+        .appointments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden; /* Garante que a borda arredondada se aplique */
+        }
+
+        .appointments-table th,
+        .appointments-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        .appointments-table th {
+            background-color: var(--background-light);
+            color: var(--primary-color);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .appointments-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .appointments-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .appointments-table .delete-btn {
+            background-color: #dc3545; /* Vermelho para excluir */
+            color: var(--text-color-light);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 0.85em;
+        }
+
+        .appointments-table .delete-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+        .appointments-table .no-appointments {
+            text-align: center;
+            font-style: italic;
+            color: var(--secondary-color);
+        }
+
+        /* Seção do Formulário de Contato */
+        .contact-form-section {
+            background-color: var(--text-color-light);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 60px;
+            opacity: 0; /* Para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+        .contact-form-section.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .contact-form-section h2 {
+            margin-bottom: 30px;
+        }
+
+        .contact-form-section form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-form-section label {
+            font-weight: 600;
+            color: var(--text-color-dark);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .contact-form-section input[type="text"],
+        .contact-form-section input[type="email"],
+        .contact-form-section input[type="tel"],
+        .contact-form-section textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1em;
+            color: var(--text-color-dark);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .contact-form-section input[type="text"]:focus,
+        .contact-form-section input[type="email"]:focus,
+        .contact-form-section input[type="tel"]:focus,
+        .contact-form-section textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(123, 66, 246, 0.2);
+            outline: none;
+        }
+
+        .contact-form-section textarea {
+            resize: vertical; /* Permite redimensionar verticalmente */
+            min-height: 100px;
+        }
+
+        .contact-form-section button[type="submit"] {
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            align-self: flex-start; /* Alinha o botão à esquerda */
+            margin-top: 10px;
+        }
+
+        .contact-form-section button[type="submit"]:hover {
+            background-color: var(--background-dark);
+            transform: translateY(-3px);
+        }
+
+        /* Mensagem de Feedback (sucesso/erro) */
+        .message-box {
+            display: none; /* Escondido por padrão */
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message-box.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        /* Rodapé da página */
+        footer {
+            background-color: var(--background-dark);
+            color: var(--text-color-light);
+            text-align: center;
+            padding: 35px 20px;
+            margin-top: 40px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        footer p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        /* Usuário ID display */
+        .user-id-display {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: var(--secondary-color);
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 768px) {
+            .page-hero-section h1 { font-size: 2.2em; }
+            .page-hero-section p { font-size: 1em; }
+            .section-title { font-size: 1.8em; margin-bottom: 30px; }
+            .contact-card {
+                width: calc(50% - 15px); /* 2 itens por linha em tablets */
+                max-width: 400px; 
+            }
+            .team-member {
+                width: calc(50% - 15px); /* 2 itens por linha em tablets */
+                max-width: 280px; 
+            }
+            .map-container { height: 300px; }
+            
+            .scheduling-form { flex-direction: column; align-items: center; }
+            .scheduling-form input[type="date"],
+            .scheduling-form input[type="time"],
+            .scheduling-form input[type="text"] { width: 100%; min-width: unset; }
+            .scheduling-form button { width: 100%; }
+
+            .appointments-table th, .appointments-table td {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-hero-section { padding: 40px 15px; }
+            .page-hero-section h1 { font-size: 1.8em; }
+            .section-title { font-size: 1.6em; margin-bottom: 25px; }
+            .contact-card, .team-member {
+                width: 100%; /* 1 item por linha em mobile */
+                padding: 20px;
+            }
+            .map-container { height: 250px; }
+            .appointments-table th, .appointments-table td {
+                padding: 8px;
+                font-size: 0.75em;
+            }
+            .appointments-table .delete-btn {
+                padding: 6px 10px;
+                font-size: 0.7em;
+            }
+        }
+    </style>
+    <!-- Fim do bloco de estilos CSS -->
+</head>
+<body>
+    <header class="page-hero-section">
+        <h1>Fale Conosco e Agende seu Horário na YuarTech</h1>
+        <p>Conecte-se conosco e organize seus compromissos digitais.</p>
+    </header>
+
+    <main class="container">
+        <!-- Mensagem de feedback (sucesso/erro/aviso) -->
+        <div id="message-box" class="message-box"></div>
+        <p class="user-id-display">Seu ID de Usuário: <span id="current-user-id">Carregando...</span></p>
+
+        <!-- Seção de Contato -->
+        <section class="contact-section">
+            <h2 class="section-title">Nossos Contatos</h2>
+            <div class="contact-cards-grid">
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fas fa-envelope"></i></div>
+                    <h3>Email</h3>
+                    <p>Envie-nos um email a qualquer momento!</p>
+                    <a href="mailto:contato@yuartech.com">Enviar Email</a>
+                </div>
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fas fa-phone-alt"></i></div>
+                    <h3>Telefone</h3>
+                    <p>Ligue para nós durante o horário comercial.</p>
+                    <a href="tel:+5511999999999">Ligar Agora</a>
+                </div>
+                <div class="contact-card show-on-scroll">
+                    <div class="icon"><i class="fab fa-whatsapp"></i></div>
+                    <h3>WhatsApp</h3>
+                    <p>Entre em contato rápido pelo WhatsApp.</p>
+                    <a href="https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços." target="_blank">Enviar Mensagem</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Agendamentos -->
+        <section class="scheduling-section show-on-scroll">
+            <h2 class="section-title">Gerencie Seus Agendamentos</h2>
+            <form id="appointment-form" class="scheduling-form">
+                <input type="date" id="appointment-date" required>
+                <input type="time" id="appointment-time" required>
+                <input type="text" id="appointment-client" placeholder="Nome do Cliente" required>
+                <button type="submit">Adicionar Agendamento</button>
+            </form>
+
+            <table class="appointments-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="appointments-table-body">
+                    <!-- Agendamentos serão carregados aqui via JavaScript -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Seção do Formulário de Contato -->
+        <section class="contact-form-section show-on-scroll">
+            <h2 class="section-title">Deseja Entrar em Contato?</h2>
+            <p>Preencha o formulário abaixo e entraremos em contato com você em breve.</p>
+            <form id="contact-form">
+                <label for="contact-name">Nome:</label>
+                <input type="text" id="contact-name" placeholder="Seu nome completo" required>
+
+                <label for="contact-email">Email:</label>
+                <input type="email" id="contact-email" placeholder="seu.email@exemplo.com" required>
+
+                <label for="contact-phone">Telefone (opcional):</label>
+                <input type="tel" id="contact-phone" placeholder="(XX) XXXXX-XXXX">
+
+                <label for="contact-message">Mensagem:</label>
+                <textarea id="contact-message" placeholder="Sua mensagem..." required></textarea>
+
+                <button type="submit">Enviar Mensagem</button>
+            </form>
+        </section>
+
+        <!-- Seção de Endereço e Mapa -->
+        <section class="address-map-section show-on-scroll">
+            <h2 class="section-title">Nosso Endereço</h2>
+            <p>Visite-nos em nosso escritório para um café e uma conversa sobre seu projeto!</p>
+            <p><strong>Rua Exemplo, 123 - Centro<br>Cidade Fictícia, Estado XX - CEP 12345-678</strong></p>
+            <div class="map-container">
+                <!-- Substitua o src do iframe pelo link de incorporação do Google Maps para o seu endereço real -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.069799516663!2d-46.65682888538356!3d-23.568270184674395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59a9c336b9c9%3A0x7d6b3b5e4c0d0a7a!2sAv.%20Paulista,%201578%20-%20Bela%20Vista,%20S%C3%A3o%20Paulo%20-%20SP,%2001310-200!5e0!3m2!1spt-BR!2sbr!4v1628100000000!5m2!1spt-BR!2sbr" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </section>
+
+        <!-- Seção da Equipe -->
+        <section class="team-section">
+            <h2 class="section-title">Nossa Equipe</h2>
+            <p>Conheça os profissionais dedicados que fazem a YuarTech acontecer!</p>
+            <div class="team-grid">
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/7B42F6/FFFFFF?text=FOTO+1" alt="[Imagem do Membro da Equipe 1]">
+                    <h3>Nome do Membro 1</h3>
+                    <p>CEO & Estrategista Digital</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/00D2B8/FFFFFF?text=FOTO+2" alt="[Imagem do Membro da Equipe 2]">
+                    <h3>Nome do Membro 2</h3>
+                    <p>Desenvolvedora Fullstack</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/2F3640/FFFFFF?text=FOTO+3" alt="[Imagem do Membro da Equipe 3]">
+                    <h3>Nome do Membro 3</h3>
+                    <p>Designer UX/UI</p>
+                </div>
+                <div class="team-member show-on-scroll">
+                    <img src="https://placehold.co/120x120/7B42F6/FFFFFF?text=FOTO+4" alt="[Imagem do Membro da Equipe 4]">
+                    <h3>Nome do Membro 4</h3>
+                    <p>Especialista em Marketing</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 YuarTech. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Início do bloco de scripts JavaScript -->
+    <script type="module">
+        // Os imports e a inicialização do Firebase foram movidos para o topo do <head>
+        // para garantir que estejam disponíveis antes de outros scripts tentarem usá-los.
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Seleciona todos os elementos com a classe 'show-on-scroll' para animação
+            const elementsToShow = document.querySelectorAll('.show-on-scroll');
+
+            // Configura o Intersection Observer para animações de scroll
+            const observerOptions = {
+                root: null, /* O viewport como elemento raiz */
+                rootMargin: '0px', /* Margem zero em torno da raiz */
+                threshold: 0.1 /* Dispara quando 10% do elemento está visível */
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Se o elemento está visível, adiciona a classe 'show' para ativar a animação
+                        entry.target.classList.add('show');
+                        // Para de observar o elemento uma vez que ele já foi animado
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Adiciona cada elemento a ser animado ao observador
+            elementsToShow.forEach(element => {
+                observer.observe(element);
+            });
+        });
+    </script>
+    <!-- Fim do bloco de scripts JavaScript -->
+</body>
+</html>
