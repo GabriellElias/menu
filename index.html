@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossos Planos de Desenvolvimento Web</title>
+    <!-- Importa a fonte Poppins do Google Fonts para um visual moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Importa os ícones do Font Awesome para adicionar elementos visuais aos blocos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Início do bloco de estilos CSS -->
+    <style>
+        /* Variáveis CSS para a nova paleta de cores: violeta/azul, verde-água e cinzas */
+        :root {
+            --primary-color: #7B42F6; /* Violeta/Azul principal, forte e distintivo */
+            --secondary-color: #8C99A4; /* Cinza médio para texto e detalhes */
+            --accent-color: #00D2B8; /* Verde-água vibrante para destaque/successo */
+            --background-light: #F8F9FB; /* Fundo claro geral, mais suave */
+            --background-dark: #2F3640; /* Cinza escuro/carvão para cabeçalho/rodapé */
+            --text-color-dark: #3E4A59; /* Texto escuro principal */
+            --text-color-light: #ffffff; /* Texto claro */
+            --border-color: #E2E4E8; /* Cor de borda mais suave */
+            --box-shadow: rgba(0, 0, 0, 0.1); /* Sombra padrão */
+            --hover-shadow: rgba(123, 66, 246, 0.4); /* Sombra de hover com a cor primária */
+            --transition-speed: 0.4s; /* Velocidade padrão das transições */
+        }
+
+        /* Reset básico de estilos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color-dark);
+            background-color: var(--background-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: url('https://img.freepik.com/vetores-gratis/fundo-azul-abstrato_1182-594.jpg'); /* [Imagem de Fundo Azul Abstrato] */
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(248, 249, 251, 0.88); /* Overlay mais claro e opaco */
+            z-index: -1;
+        }
+
+        /* Seção Hero (cabeçalho) */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--background-dark));
+            color: var(--text-color-light);
+            padding: 80px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--box-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 350px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.08); /* Brilho mais visível */
+            transform: rotate(45deg);
+            animation: hero-shine 10s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes hero-shine {
+            from { transform: rotate(45deg) translate(-50%, -50%); }
+            to { transform: rotate(45deg) translate(50%, 50%); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); /* Sombra mais profunda */
+            letter-spacing: 1px;
+        }
+
+        .hero-content p {
+            font-size: 1.3em;
+            opacity: 0.98;
+        }
+
+        /* Contêiner principal */
+        .container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 25px;
+            flex-grow: 1;
+        }
+
+        .container h2 {
+            text-align: center;
+            font-size: 2.8em;
+            color: var(--text-color-dark);
+            margin-bottom: 60px;
+            position: relative;
+            padding-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .container h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        /* Grid de blocos do menu */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 35px;
+        }
+
+        /* Estilos individuais para cada bloco de plano */
+        .menu-block {
+            background-color: var(--text-color-light);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px var(--box-shadow);
+            padding: 35px;
+            text-align: center;
+            transition: transform var(--transition-speed) ease, 
+                        box-shadow var(--transition-speed) ease,
+                        opacity var(--transition-speed) ease,
+                        top var(--transition-speed) ease,
+                        background-color var(--transition-speed) ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+
+            opacity: 0; /* Começa invisível para animação de scroll */
+            position: relative;
+            top: 20px;
+        }
+
+        .menu-block.show {
+            opacity: 1;
+            top: 0;
+        }
+
+        .menu-block:hover {
+            transform: translateY(-15px) scale(1.03) rotateZ(0.5deg);
+            box-shadow: 0 18px 40px var(--hover-shadow); /* Sombra mais pronunciada e colorida */
+            background-color: #FBFCFE; /* Leve clareamento do fundo no hover */
+        }
+
+        .menu-block .icon {
+            font-size: 4.5em; /* Ícones um pouco maiores */
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+
+        .menu-block:hover .icon {
+            color: var(--accent-color);
+            transform: rotateY(360deg) scale(1.15); /* Mais rotação e escala */
+        }
+
+        .menu-block h3 {
+            font-size: 1.8em;
+            margin-bottom: 18px;
+            color: var(--text-color-dark);
+            text-transform: uppercase;
+        }
+
+        .menu-block p {
+            font-size: 1.05em;
+            margin-bottom: 25px;
+            color: var(--secondary-color);
+            flex-grow: 1;
+        }
+
+        .menu-block .price {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .menu-block .price small {
+            font-size: 0.7em;
+            font-weight: 400;
+            display: block;
+            color: var(--secondary-color);
+        }
+
+        .menu-block .details {
+            font-size: 0.95em;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .menu-block button.learn-more {
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease, transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-block button.learn-more:hover {
+            background-color: var(--background-dark);
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Estilo específico para o bloco "Monte seu Orçamento Personalizado" */
+        .personalize-block {
+            background: linear-gradient(135deg, #e0e4e8, #d0d5dc);
+            border: 2px dashed var(--primary-color);
+            color: var(--text-color-dark);
+        }
+
+        .personalize-block .icon { color: var(--primary-color); }
+        .personalize-block h3 { color: var(--text-color-dark); }
+        .personalize-block p { color: var(--secondary-color); }
+        .personalize-block button.learn-more { background-color: var(--accent-color); }
+        .personalize-block button.learn-more:hover { background-color: #00967a; }
+
+        /* Seção de Chamada para Ação (Call to Action) */
+        .cta-section {
+            background: linear-gradient(90deg, #5B3FBB, #00D2B8); /* Gradiente com nova paleta */
+            color: var(--text-color-light);
+            text-align: center;
+            padding: 80px 20px;
+            margin-top: 80px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-section h2 {
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-section p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .cta-section .cta-button {
+            background-color: #FFD43B; /* Amarelo vibrante da nova paleta */
+            color: var(--text-color-dark);
+            border: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-section .cta-button:hover {
+            background-color: #E6B800; /* Amarelo mais escuro */
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Rodapé da página aprimorado */
+        footer {
+            background-color: var(--background-dark);
+            color: var(--text-color-light);
+            text-align: center;
+            padding: 35px 20px;
+            margin-top: 0;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        footer p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* Estilos para o Assistente Flutuante */
+        .assistant-container {
+            position: fixed;
+            right: -250px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px 0 0 15px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: right 0.4s ease-out;
+            z-index: 1000;
+        }
+
+        .assistant-container.open {
+            right: 0;
+        }
+
+        .assistant-toggle-button {
+            position: absolute;
+            left: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .assistant-toggle-button:hover {
+            background-color: var(--background-dark);
+        }
+
+        .assistant-title {
+            font-size: 1.3em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .assistant-function-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            text-decoration: none;
+            color: var(--text-color-dark);
+            font-size: 1em;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .assistant-function-button:hover {
+            background-color: #EBF0F5; /* Um cinza mais claro para hover */
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .assistant-function-button i {
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+
+        /* Estilos do Overlay de Animação */
+        .animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Fundo escuro semi-transparente */
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            overflow: hidden; /* Garante que os fragmentos não escapam */
+        }
+
+        .animation-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Estilos do Bloco Selecionado para Animação - Transforma em "palco" do robô */
+        .menu-block.is-animating {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centraliza */
+            width: 250px; /* Tamanho do robô */
+            height: 250px;
+            z-index: 1001; /* Acima do overlay */
+            background-color: var(--background-dark); /* Fundo escuro para o robô */
+            color: var(--text-color-light);
+            border-radius: 50%; /* Faz o bloco virar um círculo, simulando a cabeça do robô */
+            overflow: hidden; /* Esconde o conteúdo extra */
+            box-shadow: 0 0 40px rgba(123, 66, 246, 0.7); /* Efeito de brilho */
+            transition: all 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Transição elástica */
+            display: flex; /* Para centralizar o robô */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-block.is-animating .block-content {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            position: absolute; /* Para tirá-lo do fluxo e deixar o robô aparecer */
+        }
+
+        /* Container do Robô */
+        .robot-animation-container {
+            position: relative; /* Para posicionar olhos e boca */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            opacity: 0; /* Escondido por padrão */
+            transition: opacity 0.3s ease 0.4s; /* Aparece com delay */
+            transform: scale(0.8); /* Começa um pouco menor */
+        }
+
+        .menu-block.is-animating .robot-animation-container {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Robô - Componentes */
+        .robot-head {
+            width: 160px; /* Um pouco maior */
+            height: 140px; /* Mais oval */
+            background: radial-gradient(circle at 60% 30%, #a06dfa, var(--primary-color)); /* Gradiente sutil */
+            border-radius: 50%; /* Mais arredondado */
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra para profundidade */
+        }
+
+        .robot-eye {
+            position: absolute;
+            width: 35px; /* Olhos um pouco maiores */
+            height: 35px;
+            background-color: var(--text-color-light); /* Branco dos olhos */
+            border-radius: 50%;
+            top: 45px; /* Posição ajustada */
+            box-shadow: 0 0 8px var(--accent-color); /* Brilho nos olhos */
+            overflow: hidden; /* Para conter a pupila */
+            z-index: 11; /* Z-index maior para os olhos ficarem por cima da boca */
+        }
+
+        /* Pupila do olho */
+        .robot-eye::after {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            background-color: var(--background-dark); /* Pupila escura */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: blink-pupil 2s infinite step-end; /* Animação da pupila piscando */
+        }
+
+        .robot-eye.left { left: 30px; }
+        .robot-eye.right { right: 30px; }
+
+        @keyframes blink-pupil {
+            0%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+            50% { transform: translate(-50%, -50%) scaleY(0.1); } /* Fecha a pupila */
+        }
+
+        .robot-mouth {
+            position: absolute;
+            width: 80px; /* Boca um pouco mais larga */
+            height: 15px; /* Altura inicial reduzida */
+            background-color: transparent;
+            border: 4px solid var(--accent-color); /* Contorno mais grosso */
+            border-top: none;
+            border-radius: 0 0 40px 40px / 0 0 20px 20px; /* Formato de sorriso mais definido */
+            bottom: 20px; /* Posição ajustada, um pouco mais baixa */
+            left: 50%;
+            transform: translateX(-50%); /* Sem translateY */
+            box-shadow: 0 0 10px var(--accent-color); /* Brilho na boca */
+            animation: smile-expressive 2.5s infinite ease-in-out; /* Animação mais longa */
+            z-index: 10; /* Z-index menor que os olhos para ficar por baixo */
+        }
+
+        @keyframes smile-expressive {
+            0%, 100% { 
+                height: 15px; 
+                border-radius: 0 0 40px 40px / 0 0 20px 20px; 
+                transform: translateX(-50%); /* Sem translateY */
+                opacity: 1;
+            }
+            50% { 
+                height: 22px; /* Altura máxima reduzida */
+                border-radius: 0 0 60px 60px / 0 0 30px 30px; 
+                transform: translateX(-50%); /* Sem translateY */
+                opacity: 1; 
+                border-color: #00967a;
+            }
+        }
+
+        /* Antenas ou detalhes na cabeça */
+        .robot-head::before, .robot-head::after {
+            content: '';
+            position: absolute;
+            width: 12px; /* Mais largo */
+            height: 40px; /* Mais alto */
+            background-color: var(--accent-color);
+            border-radius: 6px; /* Mais arredondado */
+            top: -25px; /* Mais para cima */
+            z-index: 9;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .robot-head::before { left: 25px; transform: rotate(-25deg); }
+        .robot-head::after { right: 25px; transform: rotate(25deg); }
+
+        /* Corpo do robô (abaixo da cabeça) */
+        .robot-body {
+            width: 200px; /* Mais largo que a cabeça */
+            height: 90px; /* Mais alto */
+            background-color: var(--primary-color);
+            border-radius: 15px 15px 40px 40px; /* Mais suave */
+            position: relative;
+            top: -20px; /* Ajuste para encaixar na cabeça */
+            z-index: 9;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Classe para esconder outros blocos */
+        .menu-block.fade-out-all {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.8);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.8em; }
+            .hero-content p { font-size: 1.1em; }
+            .container h2 { font-size: 2.2em; margin-bottom: 50px; }
+            .menu-grid { grid-template-columns: 1fr; gap: 25px; }
+            .menu-block { padding: 30px; }
+            .menu-block .icon { font-size: 3.5em; }
+            .menu-block h3 { font-size: 1.6em; }
+            .menu-block .price { font-size: 2em; }
+            .menu-block button.learn-more { padding: 12px 25px; font-size: 1.05em; }
+            .cta-section { padding: 60px 15px; }
+            .cta-section h2 { font-size: 2.2em; }
+            .cta-section p { font-size: 1.1em; }
+            .cta-section .cta-button { padding: 12px 25px; font-size: 1.1em; }
+
+            .assistant-container { width: 200px; right: -200px; padding: 15px; gap: 10px; }
+            .assistant-container.open { right: 0; }
+            .assistant-toggle-button { left: -40px; width: 40px; height: 40px; font-size: 1.2em; }
+            .assistant-title { font-size: 1.1em; }
+            .assistant-function-button { padding: 10px; font-size: 0.9em; }
+
+            /* Ajustes para a animação do robô em telas menores */
+            .menu-block.is-animating {
+                width: 200px;
+                height: 200px;
+            }
+            .robot-head { width: 120px; height: 100px; }
+            .robot-eye { width: 25px; height: 25px; top: 30px; }
+            .robot-eye.left { left: 20px; }
+            .robot-eye.right { right: 20px; }
+            .robot-mouth { width: 50px; height: 15px; bottom: 20px; } /* Ajustado */
+            .robot-head::before, .robot-head::after { width: 8px; height: 25px; top: -15px; }
+            .robot-body { width: 150px; height: 70px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-section { padding: 50px 15px; height: 300px; }
+            .hero-content h1 { font-size: 2.2em; }
+            .hero-content p { font-size: 1em; }
+            .container { margin: 40px auto; padding: 0 15px; }
+            .container h2 { font-size: 1.9em; margin-bottom: 40px; }
+            .menu-block { padding: 25px; }
+            .cta-section { padding: 60px 15px; }
+            .cta-section h2 { font-size: 1.8em; }
+            .cta-section p { font-size: 0.95em; }
+            .cta-section .cta-button { padding: 10px 20px; font-size: 1em; }
+            .assistant-container { width: 180px; right: -180px; }
+
+            /* Mais ajustes para a animação do robô em telas menores */
+            .menu-block.is-animating {
+                width: 180px;
+                height: 180px;
+            }
+            .robot-head { width: 100px; height: 80px; }
+            .robot-eye { width: 20px; height: 20px; top: 25px; }
+            .robot-eye.left { left: 15px; }
+            .robot-eye.right { right: 15px; }
+            .robot-mouth { width: 40px; height: 12px; bottom: 15px; } /* Ajustado */
+            .robot-head::before, .robot-head::after { width: 7px; height: 20px; top: -12px; }
+            .robot-body { width: 120px; height: 60px; }
+        }
+    </style>
+    <!-- Fim do bloco de estilos CSS -->
+</head>
+<body>
+    <header class="hero-section">
+        <div class="hero-content">
+            <h1>Crie Sua Presença Online Conosco</h1>
+            <p>Descubra o plano ideal para suas necessidades digitais.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2>Escolha o Plano Perfeito para Você</h2>
+        <div class="menu-grid">
+            <!-- Bloco 1: Site Simples - Portfólio -->
+            <div class="menu-block" data-id="plano1">
+                <div class="block-content">
+                    <div class="icon"><i class="fas fa-palette"></i></div>
+                    <h3>Plano 1: Portfólio Essencial</h3>
+                    <p>Site simples, portfólio com linkagem de aplicações web.</p>
+                    <div class="price">R$180 <small>(Assinatura Permanente)</small></div>
+                    <div class="details">Atualização obrigatória: R$50/mês</div>
+                    <button class="learn-more">Saiba Mais</button>
+                </div>
+                <!-- Conteúdo do Robô - Visível apenas durante a animação -->
+                <div class="robot-animation-container">
+                    <div class="robot-head">
+                        <div class="robot-eye left"></div>
+                        <div class="robot-eye right"></div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                    <div class="robot-body"></div>
+                </div>
+            </div>
+
+            <!-- Bloco 2: Site Simples - Conexão com Clientes -->
+            <div class="menu-block" data-id="plano2">
+                <div class="block-content">
+                    <div class="icon"><i class="fas fa-users"></i></div>
+                    <h3>Plano 2: Conexão com Clientes</h3>
+                    <p>Site com bloco de seleção para clientes, tabelas e apps web.</p>
+                    <div class="price">R$200 <small>(Assinatura Permanente)</small></div>
+                    <div class="details">Atualização obrigatória: R$50/mês</div>
+                    <button class="learn-more">Saiba Mais</button>
+                </div>
+                <div class="robot-animation-container">
+                    <div class="robot-head">
+                        <div class="robot-eye left"></div>
+                        <div class="robot-eye right"></div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                    <div class="robot-body"></div>
+                </div>
+            </div>
+
+            <!-- Bloco 3: Site com Sistema de Configuração -->
+            <div class="menu-block" data-id="plano3">
+                <div class="block-content">
+                    <div class="icon"><i class="fas fa-cog"></i></div>
+                    <h3>Plano 3: Sistema Customizável</h3>
+                    <p>Múltiplas páginas, geração de documento, ligação GIT e apps web.</p>
+                    <div class="price">R$250 <small>(Assinatura Permanente)</small></div>
+                    <div class="details">Atualização de proteção: R$120/mês</div>
+                    <button class="learn-more">Saiba Mais</button>
+                </div>
+                <div class="robot-animation-container">
+                    <div class="robot-head">
+                        <div class="robot-eye left"></div>
+                        <div class="robot-eye right"></div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                    <div class="robot-body"></div>
+                </div>
+            </div>
+
+            <!-- Bloco 4: Sistema Completo com Banco de Dados -->
+            <div class="menu-block" data-id="plano4">
+                <div class="block-content">
+                    <div class="icon"><i class="fas fa-database"></i></div>
+                    <h3>Plano 4: Gestão Completa de Dados</h3>
+                    <p>Sistema completo com banco de dados para clientes e funcionários.</p>
+                    <div class="price">R$400 <small>(Acesso Vitalício)</small></div>
+                    <div class="details">Atualização obrigatória: R$180/mês<br>Código-fonte: R$1900</div>
+                    <button class="learn-more">Saiba Mais</button>
+                </div>
+                <div class="robot-animation-container">
+                    <div class="robot-head">
+                        <div class="robot-eye left"></div>
+                        <div class="robot-eye right"></div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                    <div class="robot-body"></div>
+                </div>
+            </div>
+
+            <!-- Bloco 5: Orçamento Personalizado -->
+            <div class="menu-block personalize-block" data-id="plano5">
+                <div class="block-content">
+                    <div class="icon"><i class="fas fa-lightbulb"></i></div>
+                    <h3>Plano 5: Orçamento Personalizado</h3>
+                    <p>Não encontrou a opção que queria? Crie seu orçamento!</p>
+                    <button class="learn-more">Entre em Contato</button>
+                </div>
+                <div class="robot-animation-container">
+                    <div class="robot-head">
+                        <div class="robot-eye left"></div>
+                        <div class="robot-eye right"></div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                    <div class="robot-body"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Nova seção de Chamada para Ação -->
+    <section class="cta-section">
+        <h2>Pronto para Começar Seu Projeto?</h2>
+        <p>Entre em contato conosco para discutir suas ideias e obter um orçamento sem compromisso.</p>
+        <a href="examples/plano5.html" class="cta-button">Fale Conosco Agora!</a>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 YuarTech. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Assistente Flutuante à Direita -->
+    <div class="assistant-container" id="assistantContainer">
+        <button class="assistant-toggle-button" id="assistantToggleButton">
+            <i class="fas fa-robot"></i> <!-- Ícone de robô para o assistente -->
+        </button>
+        <div class="assistant-title">Como podemos ajudar?</div>
+        <a href="mailto:contato@yuartech.com" class="assistant-function-button">
+            <i class="fas fa-envelope"></i> Contato por E-mail
+        </a>
+        <a href="tel:+5511999999999" class="assistant-function-button">
+            <i class="fas fa-phone"></i> Ligar para YuarTech
+        </a>
+        <a href="https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20os%20planos." target="_blank" class="assistant-function-button">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+        </a>
+    </div>
+
+    <!-- Overlay de Animação (apenas para escurecer o fundo, o robô está no bloco) -->
+    <div class="animation-overlay" id="animationOverlay"></div>
+
+    <!-- Início do bloco de scripts JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBlocks = document.querySelectorAll('.menu-block');
+            const assistantContainer = document.getElementById('assistantContainer');
+            const assistantToggleButton = document.getElementById('assistantToggleButton');
+            const animationOverlay = document.getElementById('animationOverlay');
+
+            // Função para obter o caminho base da URL, garantindo que o redirecionamento funcione
+            function getBasePath() {
+                const path = window.location.pathname;
+                const lastSlashIndex = path.lastIndexOf('/');
+                if (lastSlashIndex !== -1 && (path.endsWith('.html') || path.endsWith('.htm') || path.includes('.'))) {
+                    return path.substring(0, lastSlashIndex + 1);
+                }
+                return path.endsWith('/') ? path : path + '/';
+            }
+
+            const basePath = getBasePath();
+
+            // Configura o Intersection Observer para animações de scroll
+            const observerOptions = {
+                root: null, /* O viewport como elemento raiz */
+                rootMargin: '0px', /* Margem zero em torno da raiz */
+                threshold: 0.1 /* Dispara quando 10% do elemento está visível */
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Se o elemento está visível, adiciona a classe 'show' para ativar a animação
+                        entry.target.classList.add('show');
+                        // Para de observar o elemento uma vez que ele já foi animado
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Adiciona um 'listener' de evento de clique para cada bloco do menu
+            menuBlocks.forEach(block => {
+                // Inicia a observação de cada bloco para a animação de scroll
+                observer.observe(block);
+
+                block.addEventListener('click', (event) => {
+                    // Impede o redirecionamento imediato para controlar a animação
+                    event.preventDefault(); 
+                    const planId = block.dataset.id; // Pega o ID do plano do atributo data-id
+
+                    // 1. Ativa o overlay para bloquear a interação e centralizar a atenção
+                    animationOverlay.classList.add('active');
+
+                    // 2. Oculta os outros blocos e o assistente
+                    menuBlocks.forEach(mb => {
+                        if (mb !== block) { // Esconde todos MENOS o bloco clicado
+                            mb.classList.add('fade-out-all');
+                        }
+                    });
+                    assistantContainer.classList.remove('open');
+                    assistantToggleButton.style.display = 'none';
+
+                    // 3. Inicia a animação do bloco clicado (transforma em robô)
+                    block.classList.add('is-animating');
+                    // Garante que o conteúdo original do bloco desapareça para o robô aparecer
+                    block.querySelector('.block-content').style.opacity = '0';
+                    // Garante que o container do robô apareça
+                    block.querySelector('.robot-animation-container').style.opacity = '1';
+
+
+                    // 4. Redireciona após 3 segundos
+                    setTimeout(() => {
+                        // Remove o overlay e as classes de animação antes de redirecionar
+                        animationOverlay.classList.remove('active');
+                        
+                        // Reseta o estado do bloco animado
+                        block.classList.remove('is-animating');
+                        block.querySelector('.block-content').style.opacity = '1';
+                        block.querySelector('.robot-animation-container').style.opacity = '0';
+
+                        menuBlocks.forEach(mb => {
+                            mb.classList.remove('fade-out-all'); // Traz os outros de volta, embora a página vá mudar
+                        });
+                        assistantToggleButton.style.display = 'flex'; // Mostra o botão do assistente novamente
+
+                        // Redireciona para a página de exemplo
+                        const targetUrl = `${basePath}examples/${planId}.html`;
+                        window.location.href = targetUrl;
+                        
+                    }, 3000); // 3 segundos de animação
+                });
+            });
+
+            // Lógica para o Assistente Flutuante
+            assistantToggleButton.addEventListener('click', () => {
+                assistantContainer.classList.toggle('open');
+            });
+        });
+    </script>
+    <!-- Fim do bloco de scripts JavaScript -->
+</body>
+</html>
